@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluxograma Interativo - Prefeitura de Itacaré (Atualizado)</title>
+    <style>
+        :root {
+            --bg-page: #0a0f1d;
+            --line-color: #1e293b;
+            --line-active: #38bdf8;
+            --prefeito-bg: linear-gradient(135deg, #0284c7, #0369a1);
+            --assessoramento-bg: linear-gradient(135deg, #0f766e, #115e59);
+            --adm-bg: linear-gradient(135deg, #b45309, #92400e);
+            --social-bg: linear-gradient(135deg, #6d28d9, #5b21b6);
+            --infra-bg: linear-gradient(135deg, #be123c, #9f1239);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #38bdf8, #34d399, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Container do Fluxograma */
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: fit-content;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Níveis do Organograma */
+        .level {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            position: relative;
+            width: 100%;
+        }
+
+        .level-1 { margin-bottom: 3.5rem; }
+        .level-2 { margin-bottom: 4.5rem; }
+        .level-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        /* Nós / Blocos */
+        .node {
+            background: #111827;
+            border: 2px solid #1e293b;
+            border-radius: 14px;
+            padding: 1.25rem;
+            min-width: 280px;
+            max-width: 330px;
+            text-align: center;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .node:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 35px -10px rgba(56, 189, 248, 0.25);
+            border-color: var(--line-active);
+        }
+
+        .node h3 {
+            font-size: 1.05rem;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .node p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .node .label-responsavel {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #f1f5f9;
+            font-weight: bold;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 0.4rem;
+            text-transform: uppercase;
+        }
+
+        /* Estilização Temática dos Nós */
+        .node.prefeito { background: var(--prefeito-bg); border-color: #0ea5e9; }
+        .node.assessoramento { background: var(--assessoramento-bg); border-color: #14b8a6; }
+        .node.adm { background: var(--adm-bg); border-color: #f59e0b; }
+        .node.social { background: var(--social-bg); border-color: #a855f7; }
+        .node.infra { background: var(--infra-bg); border-color: #f43f5e; }
+
+        /* Colunas de Eixos Coordenados */
+        .axis-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            background: rgba(17, 24, 39, 0.4);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px dashed #1e293b;
+        }
+
+        .axis-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            margin-bottom: 0.5rem;
+        }
+        .axis-column.adm-axis .axis-title { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .axis-column.social-axis .axis-title { background: rgba(166, 85, 247, 0.15); color: #c084fc; }
+        .axis-column.infra-axis .axis-title { background: rgba(244, 63, 94, 0.15); color: #f472b6; }
+
+        /* Janela Modal de Informações Expansíveis */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 10, 19, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: #111827;
+            border: 2px solid #38bdf8;
+            padding: 2.5rem;
+            border-radius: 20px;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 0 25px 60px -15px rgba(0,0,0,0.7);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.7rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover { color: #fff; }
+
+        .modal h2 { margin-bottom: 1.25rem; color: #38bdf8; font-size: 1.4rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem;}
+        .modal-grid { display: flex; flex-direction: column; gap: 0.9rem; font-size: 0.95rem; }
+        .modal-grid p { line-height: 1.5; color: #cbd5e1; }
+        .modal-grid strong { color: #f8fafc; display: inline-block; width: 140px; }
+        
+        .pill-container { display: inline-flex; flex-wrap: wrap; gap: 0.5rem; }
+        .pill { background: #1e293b; padding: 0.15rem 0.6rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: #38bdf8; border: 1px solid rgba(56,189,248,0.2); }
+        .pill.address { color: #34d399; border-color: rgba(52,211,153,0.2); font-family: inherit; }
+
+        .btn-portal {
+            display: inline-block;
+            margin-top: 1.5rem;
+            color: #0ea5e9;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .btn-portal:hover { color: #38bdf8; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Estrutura Organizacional de Itacaré</h1>
+        <div class="subtitle">Organograma Gerencial Atualizado • Clique nos Blocos para Ver Detalhes</div>
+    </header>
+
+    <div class="chart-container">
+
+        <div class="level level-1">
+            <div class="node prefeito" onclick="showModal('Prefeitura Municipal de Itacaré', 'EDISON ARANTES MENDES', 'Não informado', '73 999594447', [], 'gabineteprefeito@itacare.ba.gov.br', [], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', '#')">
+                <h3>Edison Arantes Mendes</h3>
+                <p>Prefeito Municipal</p>
+            </div>
+        </div>
+
+        <div class="level level-2">
+            <div class="node assessoramento" onclick="showModal('Gabinete do Prefeito', 'Jadson machado de almeida.', 'Não informado', '73 999594447', [], 'gabineteprefeito@itacare.ba.gov.br', [], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/gabinete-do-prefeito/')">
+                <h3>Gabinete do Prefeito</h3>
+                <p>Assessoramento Direto</p>
+                <div class="label-responsavel">Jadson M. de Almeida</div>
+            </div>
+            
+            <div class="node assessoramento" onclick="showModal('Controladoria Geral do Município', 'Não identificado', 'Não informado', '73 99930-7363', [], 'controleinterno@itacare.ba.gov.br', [], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/controladoria-geral-do-municipio/')">
+                <h3>Controladoria Geral</h3>
+                <p>Órgão de Fiscalização Interna</p>
+                <div class="label-responsavel">Não identificado</div>
+            </div>
+
+            <div class="node assessoramento" onclick="showModal('Procuradoria Geral do Município', 'ALVARO KRUSCHEWSKY MIGUEL NETO', 'Willian Jonathan Pereira Conceição', '73 999879566', ['73 998261311'], 'procuradoria@itacare.ba.gov.br', [], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-da-procuradoria-geral/')">
+                <h3>Procuradoria Geral (PGM)</h3>
+                <p>Representação e Consultoria Jurídica</p>
+                <div class="label-responsavel">Alvaro Kruschewsky</div>
+            </div>
+        </div>
+
+        <div class="level level-3">
+            
+            <div class="axis-column adm-axis">
+                <div class="axis-title">Gestão & Finanças</div>
+
+                <div class="node adm" onclick="showModal('Secretaria de Finanças', 'MARCOS ANTÔNIO NASCIMENTO DE CERQUEIRA', 'Yasmin Mendes Santana', '73 99990-5656', ['73 99833-1515', '73 9 99598720'], 'secfinancas@itacare.ba.gov.br', ['tesouraria@itacare.ba.gov.br'], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-de-financas/')">
+                    <h3>Finanças</h3>
+                    <div class="label-responsavel">Marcos Antônio Cerqueira</div>
+                </div>
+
+                <div class="node adm" onclick="showModal('Secretaria Municipal da Administração', 'Marília Gomes Almeida', 'Não informado', 'Não informado', [], 'administracao@itacare.ba.gov.br', ['rh@itacare.ba.gov.br'], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-da-administracao/')">
+                    <h3>Administração</h3>
+                    <div class="label-responsavel">Marília Gomes Almeida</div>
+                </div>
+
+                <div class="node adm" onclick="showModal('Secretaria Municipal de Governo e Serviços Públicos', 'LUIZ CARVALHO QUADROS', 'Jadson Rodrigues do Socorro', '73 999652000', [], 'secgoverno@itacare.ba.gov.br', [], 'Rua Rui Barbosa, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-governo/')">
+                    <h3>Governo e Serv. Públicos</h3>
+                    <div class="label-responsavel">Luiz Carvalho Quadros</div>
+                </div>
+
+                <div class="node adm" onclick="showModal('Secretaria Municipal de Comunicação', 'Albert Silva Queiroz dos Santos', 'Aquis José dos Santos', '73 982187658', ['73 981449601'], 'secom@itacare.ba.gov.br', [], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-comunicacao/')">
+                    <h3>Comunicação</h3>
+                    <div class="label-responsavel">Albert Silva Queiroz</div>
+                </div>
+            </div>
+
+            <div class="axis-column social-axis">
+                <div class="axis-title">Cidadania & Social</div>
+
+                <div class="node social" onclick="showModal('Secretaria Municipal da Saúde', 'ANDREIA SANTOS DIAS PALAFOZ', 'Andréia Rodrigues Costa Carvalho', '73999991015', ['73998463149'], 'secsaude@itacare.ba.gov.br', [], 'Rua Nova Conquista, 92, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-da-saude/')">
+                    <h3>Saúde</h3>
+                    <div class="label-responsavel">Andreia Dias Palafoz</div>
+                </div>
+
+                <div class="node social" onclick="showModal('Secretaria Municipal da Educação', 'JAMILLE SILVA DE SOUZA', 'Fabiana Fernandes de Oliveira Matos', '73 991170943', ['73 98262-4374'], 'seduc@itacare.ba.gov.br', [], 'Rua João de Souza, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-da-educacao/')">
+                    <h3>Educação</h3>
+                    <div class="label-responsavel">Jamille Silva de Souza</div>
+                </div>
+
+                <div class="node social" onclick="showModal('Secretaria Municipal de Desenvolvimento Social', 'ANDREZZA REGINA DOS SANTOS MATOS', 'Juliana Novais Felix', '73999026301', ['73991418701'], 'social@itacare.ba.gov.br', [], 'Rua Rui Barbosa, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-desenvolvimento-social/')">
+                    <h3>Desenvolvimento Social</h3>
+                    <div class="label-responsavel">Andrezza Regina Matos</div>
+                </div>
+
+                <div class="node social" onclick="showModal('Secretaria Municipal das Mulheres', 'ANA PAULA ALMEIDA LARANJEIRA', 'Caroline Bráulio de Carvalho Sá', '73 991821305', ['73 999834418'], 'secretariadamulher@itacare.ba.gov.br', [], 'Rua Rui Barbosa, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-da-mulher/')">
+                    <h3>Mulheres</h3>
+                    <div class="label-responsavel">Ana Paula Laranjeira</div>
+                </div>
+
+                <div class="node social" onclick="showModal('Secretaria Municipal de Cultura', 'BOMFIM GENILSON SOUZA DA SILVA', 'Diego Augusto Morais Silva', '73999051264', ['73999546466'], 'seculti@itacare.ba.gov.br', [], 'Rua Rui Barbosa, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-cultura/')">
+                    <h3>Cultura</h3>
+                    <div class="label-responsavel">Bomfim Genilson Silva</div>
+                </div>
+
+                <div class="node social" onclick="showModal('Secretaria Municipal de Turismo', 'PATRÍCIA VERAS SOARES', 'RICARDO TORRES LINS', '73 99825-1353', ['73 98128-5719'], 'secturismo@itacare.ba.gov.br', [], 'Rua Rui Barbosa, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-turismo/')">
+                    <h3>Turismo</h3>
+                    <div class="label-responsavel">Patrício Veras Soares</div>
+                </div>
+
+                <div class="node social" onclick="showModal('Secretaria Municipal de Esporte e Juventude', 'ALISSON ALBERTO REIS DOS REIS', 'Luciano Marcelo Barros', '73 998664280', ['73 998331515'], 'smjec@itacare.ba.gov.br', [], 'Rua Rui Barbosa, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-esporte-e-juventude/')">
+                    <h3>Esporte e Juventude</h3>
+                    <div class="label-responsavel">Alisson Alberto Reis</div>
+                </div>
+            </div>
+
+            <div class="axis-column infra-axis">
+                <div class="axis-title">Infraestrutura & Produção</div>
+
+                <div class="node infra" onclick="showModal('Secretaria Municipal de Planejamento e Projetos', 'ROMÁRIO AUGUSTO SOUZA DAMASCENO', 'Genivaldo Batista de Jesus', '73981580235', [], 'seplan@itacare.ba.gov.br', [], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-planejamento-e-projetos/')">
+                    <h3>Planejamento e Projetos</h3>
+                    <div class="label-responsavel">Romário A. Damasceno</div>
+                </div>
+
+                <div class="node infra" onclick="showModal('Secretaria Municipal de Desenvolvimento Urbano', 'LENÉCIA DOS SANTOS FREITAS', 'Paulo Roberto Alves dos Santos', '73998374464', ['73982375691'], 'sedur@itacare.ba.gov.br', [], 'Rua da Feira, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-desenvolvimento-urbano/')">
+                    <h3>Desenvolvimento Urbano</h3>
+                    <div class="label-responsavel">Lenécia Santos Freitas</div>
+                </div>
+
+                <div class="node infra" onclick="showModal('Secretaria Municipal do Meio Ambiente', 'JOSÉ MARCOS LUEDY OLIVEIRA', 'Cosme Nunes Pereira', '73991646157', ['73991193062'], 'sema@itacare.ba.gov.br', [], 'Rua da Feira, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-do-meio-ambiente/')">
+                    <h3>Meio Ambiente</h3>
+                    <div class="label-responsavel">José Marcos Luedy</div>
+                </div>
+
+                <div class="node infra" onclick="showModal('Secretaria Municipal de Agricultura, Pesca e Aquicultura', 'José Alves Ferreira', 'Adilton Gomes da Cruz', '73982258297', ['73999643824'], 'agriculturaepesca@itacare.ba.gov.br', [], 'Rua João Coutinho, Centro, Distrito de Taboquinhas', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-agricultura-pesca-e-aquicultura/')">
+                    <h3>Agricultura e Pesca</h3>
+                    <div class="label-responsavel">José Alves Ferreira</div>
+                </div>
+
+                <div class="node infra" onclick="showModal('Secretaria Municipal de Transporte e Trânsito', 'Não identificado', 'José Augusto Mato Grosso Matheus', '73998180589', [], 'setrans@itacare.ba.gov.br', [], 'Rua Rui Barbosa, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-transito-e-transporte/')">
+                    <h3>Transporte e Trânsito</h3>
+                    <div class="label-responsavel">Não identificado</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal" id="infoModal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <h2 id="modal-title">Secretaria</h2>
+            <div class="modal-grid">
+                <p><strong>Secretário Titular:</strong> <span id="modal-sec">-</span></p>
+                <p><strong>Secretário Adjunto:</strong> <span id="modal-adj">-</span></p>
+                <p><strong>Telefone Principal:</strong> <span id="modal-tel" class="pill">-</span></p>
+                <p><strong>Outros Telefones:</strong> <span id="modal-outros-tel" class="pill-container">-</span></p>
+                <p><strong>E-mail Principal:</strong> <span id="modal-mail" class="pill">-</span></p>
+                <p><strong>Outros E-mails:</strong> <span id="modal-outros-mail" class="pill-container">-</span></p>
+                <p><strong>Endereço Físico:</strong> <br><span id="modal-end" class="pill address">-</span></p>
+            </div>
+            <a id="modal-link" href="#" target="_blank" class="btn-portal">Acessar Portal da Transparência &rarr;</a>
+        </div>
+    </div>
+
+    <script>
+        function showModal(nome, sec, adj, tel, outrosTel, mail, outrosMail, endereco, url) {
+            document.getElementById('modal-title').innerText = nome;
+            document.getElementById('modal-sec').innerText = sec;
+            document.getElementById('modal-adj').innerText = adj;
+            document.getElementById('modal-tel').innerText = tel;
+            document.getElementById('modal-mail').innerText = mail;
+            document.getElementById('modal-end').innerText = endereco;
+            document.getElementById('modal-link').href = url;
+
+            // Tratamento dinâmico para múltiplos telefones
+            const containerTel = document.getElementById('modal-outros-tel');
+            containerTel.innerHTML = '';
+            if(outrosTel && outrosTel.length > 0) {
+                outrosTel.forEach(t => {
+                    containerTel.innerHTML += `<span class="pill">${t}</span> `;
+                });
+            } else {
+                containerTel.innerHTML = '<span style="color:#64748b; font-size:0.9rem;">Nenhum cadastrado</span>';
+            }
+
+            // Tratamento dinâmico para múltiplos e-mails
+            const containerMail = document.getElementById('modal-outros-mail');
+            containerMail.innerHTML = '';
+            if(outrosMail && outrosMail.length > 0) {
+                outrosMail.forEach(m => {
+                    containerMail.innerHTML += `<span class="pill">${m}</span> `;
+                });
+            } else {
+                containerMail.innerHTML = '<span style="color:#64748b; font-size:0.9rem;">Nenhum cadastrado</span>';
+            }
+
+            document.getElementById('infoModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('infoModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
