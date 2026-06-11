@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluxograma Interativo Responsivo - Prefeitura de Itacaré</title>
+    
     <link rel="icon" type="image/png" href="logo.png">
-    <title>Fluxograma Interativo - Prefeitura de Itacaré (Atualizado)</title>
+
     <style>
         :root {
             --bg-page: #0a0f1d;
@@ -34,17 +36,35 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow-x: auto;
         }
 
         header {
             text-align: center;
             margin-bottom: 3rem;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* ESTILIZAÇÃO DA LOGO NO TOPO */
+        .site-logo {
+            height: 90px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0px 4px 12px rgba(56, 189, 248, 0.15));
+            transition: transform 0.3s ease;
+        }
+
+        .site-logo:hover {
+            transform: scale(1.05);
         }
 
         h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
+            font-size: 2rem;
+            margin-bottom: 0.2rem;
             background: linear-gradient(to right, #38bdf8, #34d399, #fbbf24);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -52,7 +72,8 @@
 
         .subtitle {
             color: var(--text-muted);
-            font-size: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
 
         /* Container do Fluxograma */
@@ -60,26 +81,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: fit-content;
+            width: 100%;
+            max-width: 1140px;
             margin: 0 auto;
-            position: relative;
         }
 
         /* Níveis do Organograma */
         .level {
             display: flex;
             justify-content: center;
-            gap: 2rem;
-            position: relative;
+            gap: 1.5rem;
             width: 100%;
         }
 
         .level-1 { margin-bottom: 3.5rem; }
         .level-2 { margin-bottom: 4.5rem; }
+        
+        /* Layout Desktop (Grid de 3 Colunas) */
         .level-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 2.5rem;
+            gap: 2rem;
             align-items: start;
         }
 
@@ -89,19 +111,22 @@
             border: 2px solid #1e293b;
             border-radius: 14px;
             padding: 1.25rem;
-            min-width: 280px;
-            max-width: 330px;
+            width: 100%;
+            min-width: 260px;
             text-align: center;
             box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            position: relative;
         }
 
         .node:hover {
             transform: translateY(-6px);
             box-shadow: 0 20px 35px -10px rgba(56, 189, 248, 0.25);
             border-color: var(--line-active);
+        }
+
+        .level-1 .node, .level-2 .node {
+            max-width: 320px;
         }
 
         .node h3 {
@@ -137,12 +162,13 @@
         .axis-column {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.25rem;
             align-items: center;
             background: rgba(17, 24, 39, 0.4);
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-radius: 20px;
             border: 1px dashed #1e293b;
+            width: 100%;
         }
 
         .axis-title {
@@ -152,7 +178,9 @@
             letter-spacing: 1px;
             padding: 0.3rem 1rem;
             border-radius: 30px;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
+            text-align: center;
+            width: 100%;
         }
         .axis-column.adm-axis .axis-title { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
         .axis-column.social-axis .axis-title { background: rgba(166, 85, 247, 0.15); color: #c084fc; }
@@ -174,6 +202,7 @@
             pointer-events: none;
             transition: all 0.3s ease;
             z-index: 100;
+            padding: 1rem;
         }
 
         .modal.active {
@@ -184,14 +213,16 @@
         .modal-content {
             background: #111827;
             border: 2px solid #38bdf8;
-            padding: 2.5rem;
+            padding: 2rem;
             border-radius: 20px;
             max-width: 550px;
-            width: 90%;
+            width: 100%;
             box-shadow: 0 25px 60px -15px rgba(0,0,0,0.7);
             transform: scale(0.9);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal.active .modal-content {
@@ -200,44 +231,60 @@
 
         .close-btn {
             position: absolute;
-            top: 1.25rem;
-            right: 1.25rem;
+            top: 1rem;
+            right: 1rem;
             background: none;
             border: none;
             color: var(--text-muted);
             font-size: 1.7rem;
             cursor: pointer;
-            transition: color 0.2s;
         }
 
         .close-btn:hover { color: #fff; }
 
-        .modal h2 { margin-bottom: 1.25rem; color: #38bdf8; font-size: 1.4rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem;}
+        .modal h2 { margin-bottom: 1.25rem; color: #38bdf8; font-size: 1.3rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem;}
         .modal-grid { display: flex; flex-direction: column; gap: 0.9rem; font-size: 0.95rem; }
-        .modal-grid p { line-height: 1.5; color: #cbd5e1; }
-        .modal-grid strong { color: #f8fafc; display: inline-block; width: 140px; }
+        .modal-grid p { line-height: 1.5; color: #cbd5e1; display: flex; flex-direction: column; gap: 0.2rem; }
+        .modal-grid strong { color: #f8fafc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
         
         .pill-container { display: inline-flex; flex-wrap: wrap; gap: 0.5rem; }
-        .pill { background: #1e293b; padding: 0.15rem 0.6rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: #38bdf8; border: 1px solid rgba(56,189,248,0.2); }
-        .pill.address { color: #34d399; border-color: rgba(52,211,153,0.2); font-family: inherit; }
+        .pill { background: #1e293b; padding: 0.25rem 0.6rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: #38bdf8; border: 1px solid rgba(56,189,248,0.2); width: fit-content; }
+        .pill.address { color: #34d399; border-color: rgba(52,211,153,0.2); font-family: inherit; width: 100%; }
 
         .btn-portal {
-            display: inline-block;
+            display: block;
+            text-align: center;
             margin-top: 1.5rem;
-            color: #0ea5e9;
+            color: #fff;
+            background: #0284c7;
+            padding: 0.6rem;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
             font-size: 0.9rem;
-            transition: color 0.2s;
+            transition: background 0.2s;
         }
-        .btn-portal:hover { color: #38bdf8; text-decoration: underline; }
+        .btn-portal:hover { background: #0ea5e9; }
+
+        /* Regras de Responsividade */
+        @media (max-width: 900px) {
+            body { padding: 1rem 0.5rem; }
+            h1 { font-size: 1.6rem; }
+            .site-logo { height: 75px; } /* Reduz um pouquinho a logo no celular */
+            .level-2 { flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 3rem; }
+            .level-3 { grid-template-columns: 1fr; gap: 2rem; width: 100%; }
+            .axis-column { padding: 1rem; }
+            .node { max-width: 100% !important; min-width: 100%; }
+        }
     </style>
 </head>
 <body>
 
     <header>
+        <img src="logo.png" alt="Logo de Itacaré" class="site-logo">
+        
         <h1>Estrutura Organizacional de Itacaré</h1>
-        <div class="subtitle">Organograma Gerencial Atualizado • Clique nos Blocos para Ver Detalhes</div>
+        <div class="subtitle">Organograma Gerencial Responsável • Toque nos Blocos para Ver Detalhes</div>
     </header>
 
     <div class="chart-container">
@@ -335,7 +382,7 @@
             </div>
 
             <div class="axis-column infra-axis">
-                <div class="axis-title">Infraestrutura & Produção</div>
+                <div class="axis-title">Infraestrutura & Production</div>
 
                 <div class="node infra" onclick="showModal('Secretaria Municipal de Planejamento e Projetos', 'ROMÁRIO AUGUSTO SOUZA DAMASCENO', 'Genivaldo Batista de Jesus', '73981580235', [], 'seplan@itacare.ba.gov.br', [], 'Rua Dr. Edgar Alves dos Reis, 57, Centro, Itacaré', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-planejamento-e-projetos/')">
                     <h3>Planejamento e Projetos</h3>
@@ -353,7 +400,7 @@
                 </div>
 
                 <div class="node infra" onclick="showModal('Secretaria Municipal de Agricultura, Pesca e Aquicultura', 'José Alves Ferreira', 'Adilton Gomes da Cruz', '73982258297', ['73999643824'], 'agriculturaepesca@itacare.ba.gov.br', [], 'Rua João Coutinho, Centro, Distrito de Taboquinhas', 'https://itacare.ba.gov.br/secretarias/secretaria-municipal-de-agricultura-pesca-e-aquicultura/')">
-                    <h3>Agricultura e Pesca</h3>
+                    <h3>Agriculture e Pesca</h3>
                     <div class="label-responsavel">José Alves Ferreira</div>
                 </div>
 
@@ -377,9 +424,9 @@
                 <p><strong>Outros Telefones:</strong> <span id="modal-outros-tel" class="pill-container">-</span></p>
                 <p><strong>E-mail Principal:</strong> <span id="modal-mail" class="pill">-</span></p>
                 <p><strong>Outros E-mails:</strong> <span id="modal-outros-mail" class="pill-container">-</span></p>
-                <p><strong>Endereço Físico:</strong> <br><span id="modal-end" class="pill address">-</span></p>
+                <p><strong>Endereço Físico:</strong> <span id="modal-end" class="pill address">-</span></p>
             </div>
-            <a id="modal-link" href="#" target="_blank" class="btn-portal">Acessar Portal da Transparência &rarr;</a>
+            <a id="modal-link" href="#" target="_blank" class="btn-portal">Acessar Portal da Transparência</a>
         </div>
     </div>
 
@@ -393,26 +440,20 @@
             document.getElementById('modal-end').innerText = endereco;
             document.getElementById('modal-link').href = url;
 
-            // Tratamento dinâmico para múltiplos telefones
             const containerTel = document.getElementById('modal-outros-tel');
             containerTel.innerHTML = '';
             if(outrosTel && outrosTel.length > 0) {
-                outrosTel.forEach(t => {
-                    containerTel.innerHTML += `<span class="pill">${t}</span> `;
-                });
+                outrosTel.forEach(t => { containerTel.innerHTML += `<span class="pill">${t}</span> `; });
             } else {
-                containerTel.innerHTML = '<span style="color:#64748b; font-size:0.9rem;">Nenhum cadastrado</span>';
+                containerTel.innerHTML = '<span style="color:#64748b;">Nenhum cadastrado</span>';
             }
 
-            // Tratamento dinâmico para múltiplos e-mails
             const containerMail = document.getElementById('modal-outros-mail');
             containerMail.innerHTML = '';
             if(outrosMail && outrosMail.length > 0) {
-                outrosMail.forEach(m => {
-                    containerMail.innerHTML += `<span class="pill">${m}</span> `;
-                });
+                outrosMail.forEach(m => { containerMail.innerHTML += `<span class="pill">${m}</span> `; });
             } else {
-                containerMail.innerHTML = '<span style="color:#64748b; font-size:0.9rem;">Nenhum cadastrado</span>';
+                containerMail.innerHTML = '<span style="color:#64748b;">Nenhum cadastrado</span>';
             }
 
             document.getElementById('infoModal').classList.add('active');
